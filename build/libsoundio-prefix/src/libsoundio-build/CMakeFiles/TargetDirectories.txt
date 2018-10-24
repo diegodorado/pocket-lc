@@ -1,0 +1,8 @@
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/install.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/list_install_components.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/rebuild_cache.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/edit_cache.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/libsoundio_static.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/doc.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/install/local.dir
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build/CMakeFiles/install/strip.dir

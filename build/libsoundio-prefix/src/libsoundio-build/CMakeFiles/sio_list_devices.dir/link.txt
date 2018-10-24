@@ -1,0 +1,1 @@
+/usr/bin/cc  -g -Werror -pedantic   CMakeFiles/sio_list_devices.dir/example/sio_list_devices.c.o  -o sio_list_devices -rdynamic libsoundio.so.1.1.0 -ljack -lpulse -lasound -lpthread -Wl,-rpath,/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build: 

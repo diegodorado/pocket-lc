@@ -1,0 +1,1 @@
+/usr/bin/cc     CMakeFiles/pockeLC.dir/src/main.c.o CMakeFiles/pockeLC.dir/src/libs/tinyexpr.c.o  -o pockeLC -lm -lpthread -ljack libsoundio-prefix/src/libsoundio-build/libsoundio.a /usr/lib/x86_64-linux-gnu/libjack.so /usr/lib/x86_64-linux-gnu/libpulse.so /usr/lib/x86_64-linux-gnu/libasound.so 

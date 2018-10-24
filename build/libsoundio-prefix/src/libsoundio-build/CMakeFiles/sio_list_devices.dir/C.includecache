@@ -1,0 +1,26 @@
+#IncludeRegexLine: ^[ 	]*#[ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio/example/sio_list_devices.c
+soundio/soundio.h
+-
+stdio.h
+-
+string.h
+-
+stdbool.h
+-
+
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio/soundio/endian.h
+
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio/soundio/soundio.h
+endian.h
+/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio/soundio/endian.h
+stdbool.h
+-
+

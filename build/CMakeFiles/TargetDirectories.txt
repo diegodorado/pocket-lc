@@ -1,0 +1,4 @@
+/home/diegodorado/Code/c/pocketLC/build/CMakeFiles/rebuild_cache.dir
+/home/diegodorado/Code/c/pocketLC/build/CMakeFiles/pockeLC.dir
+/home/diegodorado/Code/c/pocketLC/build/CMakeFiles/edit_cache.dir
+/home/diegodorado/Code/c/pocketLC/build/CMakeFiles/libsoundio.dir
