@@ -1,1 +1,0 @@
-/usr/bin/cc  -g -Werror -pedantic   CMakeFiles/overflow.dir/test/overflow.c.o  -o overflow -rdynamic libsoundio.so.1.1.0 -ljack -lpulse -lasound -lpthread -Wl,-rpath,/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build 

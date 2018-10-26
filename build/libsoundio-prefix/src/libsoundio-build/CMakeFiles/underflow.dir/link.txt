@@ -1,1 +1,0 @@
-/usr/bin/cc  -g -Werror -pedantic   CMakeFiles/underflow.dir/test/underflow.c.o  -o underflow -rdynamic libsoundio.so.1.1.0 -lm -ljack -lpulse -lasound -lpthread -Wl,-rpath,/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build 

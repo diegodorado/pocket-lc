@@ -1,3 +1,0 @@
-repository='https://github.com/andrewrk/libsoundio.git'
-module=''
-tag=''

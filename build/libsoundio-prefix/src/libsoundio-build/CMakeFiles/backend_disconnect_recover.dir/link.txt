@@ -1,1 +1,0 @@
-/usr/bin/cc  -g -Werror -pedantic   CMakeFiles/backend_disconnect_recover.dir/test/backend_disconnect_recover.c.o  -o backend_disconnect_recover -rdynamic libsoundio.so.1.1.0 -ljack -lpulse -lasound -lpthread -Wl,-rpath,/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build 

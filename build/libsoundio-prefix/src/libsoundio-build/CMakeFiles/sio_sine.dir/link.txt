@@ -1,1 +1,0 @@
-/usr/bin/cc  -g -Werror -pedantic   CMakeFiles/sio_sine.dir/example/sio_sine.c.o  -o sio_sine -rdynamic libsoundio.so.1.1.0 -lm -ljack -lpulse -lasound -lpthread -Wl,-rpath,/home/diegodorado/Code/c/pocketLC/build/libsoundio-prefix/src/libsoundio-build: 
