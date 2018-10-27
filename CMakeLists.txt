@@ -9,6 +9,9 @@ include_directories(pockeLC
 
 add_executable(pockeLC
   src/main.c
+  src/editor.c
+  src/parser.c
+  src/audio.c
   src/libs/tinyexpr.c
 )
 

@@ -1,220 +1,207 @@
-#include "tinyexpr.h"
-#include <stdio.h>
+#include "editor.h"
+#include "parser.h"
+#include "audio.h"
+#include <inttypes.h>
+
+
 #include <math.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <termio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <alsa/asoundlib.h>
 
-static char *device = "default";                        /* playback device */
-uint8_t buffer[2];                          /* some random data */
+static char *device = "plughw:0,0";			/* playback device */
+static snd_pcm_format_t format = SND_PCM_FORMAT_S8;	/* sample format */
+static unsigned int rate = 44100;			/* stream rate */
+static unsigned int channels = 1;			/* count of channels */
+static unsigned int buffer_time = 500000;		/* ring buffer length in us */
+static double freq = 440;				/* sinusoidal wave frequency in Hz */
+static int verbose = 1;					/* verbose flag */
+static int resample = 1;				/* enable alsa-lib resampling */
+static snd_pcm_sframes_t buffer_size;
+static snd_pcm_sframes_t period_size;
+
+struct async_private_data data;
 snd_pcm_t *handle;
-
-char expr[100];
-uint8_t expr_index=0;
-
-
- bool kbhit(void)
- {
-     struct termios original;
-     tcgetattr(STDIN_FILENO, &original);
-
-     struct termios term;
-     memcpy(&term, &original, sizeof(term));
-
-     term.c_lflag &= ~ICANON;
-     tcsetattr(STDIN_FILENO, TCSANOW, &term);
-
-     int characters_buffered = 0;
-     ioctl(STDIN_FILENO, FIONREAD, &characters_buffered);
-
-     tcsetattr(STDIN_FILENO, TCSANOW, &original);
-
-     bool pressed = (characters_buffered != 0);
-
-     return pressed;
- }
-
- void echoOff(void)
- {
-     struct termios term;
-     tcgetattr(STDIN_FILENO, &term);
-
-     term.c_lflag &= ~ECHO;
-     tcsetattr(STDIN_FILENO, TCSANOW, &term);
- }
-
- void echoOn(void)
- {
-     struct termios term;
-     tcgetattr(STDIN_FILENO, &term);
-
-     term.c_lflag |= ECHO;
-     tcsetattr(STDIN_FILENO, TCSANOW, &term);
- }
-
-
-void loop(){
-
-    int c = '\0';
-
-     double t,r,f,v;
-     r = 8000.0;
-     f = 261.6;
-     v = 127.0;
-     te_variable vars[] = {{"t", &t},{"r", &r},{"f", &f},{"v", &v}};
-
-
-     int err;
-     //te_expr *expr = te_compile("(t*5&t>>7)|(t*3&t>>10)", vars, 4, &err);
-     te_expr *expre = te_compile("(sin(t*2*3.14/100)+1)*100", vars, 4, &err);
-
-     uint8_t sample;
-     for (t = 0; ; t++) {
-       sample = (uint8_t)te_eval(expre);
-       snd_pcm_writei(handle, &sample, 1);
-
-        if (kbhit())
-        {
-          c = getchar();
-          expr[expr_index] = c;
-          expr_index++;
-          expr[expr_index] = 0;
-            printf("\n%s\n", expr);
-            if(c=='\n') {
-              expre = te_compile(&expr, vars, 4, &err);
-            }
-        }
-
-     }
-
-}
-
-
-int main(void)
-{
-        int err;
-        unsigned int i;
-        for (i = 0; i < sizeof(buffer); i++)
-                buffer[i] = random() & 0xff;
-        if ((err = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
-                printf("Playback open error: %s\n", snd_strerror(err));
-                exit(EXIT_FAILURE);
-        }
-        if ((err = snd_pcm_set_params(handle,
-                                      SND_PCM_FORMAT_U8,
-                                      SND_PCM_ACCESS_RW_INTERLEAVED,
-                                      1,
-                                      44100,
-                                      1,
-                                      500000)) < 0) {   /* 0.5sec */
-                printf("Playback open error: %s\n", snd_strerror(err));
-                exit(EXIT_FAILURE);
-        }
-
-        loop();
-
-        snd_pcm_close(handle);
-        return 0;
-}
-
-
-/*
-
-
- int main(void)
- {
-   long i;
-   //echoOff();
-
-   int c = '\0';
-
-     while (c != 'q')
-     {
-         if (kbhit())
-         {
-             c = getchar();
-
-             //printf("got key \'%c\'\n", c);
-             if(c=='\n') { printf("\nuser break\n"); return 1;  }
-         }
-     }
-
-     //echoOn();
-
-     return 0;
- }
-
-
-int main2(int argc, char *argv[])
-{
-  long i;
-  echoOff();
-
-  int c = '\0';
+snd_async_handler_t *ahandler;
 
 
 
-   double t,r,f,v;
-   r = 8000.0;
-   f = 261.6;
-   v = 127.0;
-   te_variable vars[] = {{"t", &t},{"r", &r},{"f", &f},{"v", &v}};
+void init(){
+  enableRawMode();
+  editorInitialize();
 
-
-   int err;
-   //te_expr *expr = te_compile("( sin(t) + 1 ) * v", vars, 4, &err);
-   te_expr *expr = te_compile("(sin(t*2*3.14/r*f)+1)*v", vars, 4, &err);
-
-  int d;
-  int count = 0;
-  char arr[12];
-
-
-  d = getchar();
-
-  while ((count < 12) && (d != EOF)) {
-    arr[count] = d;
-    ++count;
-    d = getchar();
+  if(parser_init()){
+    printf("parser_init failed\n");
+    exit(EXIT_FAILURE);
   }
 
-  arr[count] = 0;
-  printf("%s\n",&arr);
-
-
-
-  return 1;
-
-
-
-   if (expr) {
-       for ( int i=0; ; i++ )
-       {
-         t = i;
-         uint8_t temp = (uint8_t)te_eval(expr);
-         //uint8_t temp = t/F*C; // middle C saw wave (bytebeat style)
-         // uint8_t temp = (t*5&t>>7)|(t*3&t>>10); // viznut bytebeat composition
-         fwrite(&temp,1,1,stdout);
-
-         c += 0.002;
-
-
-       }
-
-       te_free(expr);
-   } else {
-       printf("Parse error at %d\n", err);
-   }
-
-   echoOn();
-
-   return 0;
-
-
-
 }
-*/
+
+void update_screen(){
+  static clock_t last_update_tick = 0;
+
+  clock_t current_tick = clock();
+  if(current_tick-last_update_tick > 10000)
+  {
+    last_update_tick = current_tick;
+    editorRefreshScreen();
+  }
+}
+
+void evaluateCode() {
+  int len;
+  char *buf = editorRowsToString(&len);
+  int err = parser_update(buf);
+  if(err){
+    printf("Err: %d CODE: %s",err,buf);
+    exit(EXIT_FAILURE);
+  }
+  free(buf);
+}
+
+void read_input() {
+  if (editorKeyboardHit())
+  {
+    int c = editorReadKey();
+    switch (c) {
+      case CTRL_KEY('e'):
+      //case '\r':
+        evaluateCode();
+        break;
+      default:
+        editorProcessKey(c);
+    }
+  }
+}
+
+
+
+static void audio_fill(const snd_pcm_channel_area_t *areas,	int count)
+{
+	uint8_t *samples;
+	samples = (uint8_t *) areas[0].addr;
+	/* fill the channel areas */
+	while (count-- > 0) {
+		int res;
+    res = parser_eval() * 127;
+		*samples = res & 0xff;
+		samples++; //advance sample
+    parser_step(1); //advance step
+	}
+}
+
+
+static void async_callback(snd_async_handler_t *ahandler)
+{
+	snd_pcm_t *handle = snd_async_handler_get_pcm(ahandler);
+	struct async_private_data *data = snd_async_handler_get_callback_private(ahandler);
+	signed short *samples = data->samples;
+	snd_pcm_channel_area_t *areas = data->areas;
+	snd_pcm_sframes_t avail;
+	int err;
+
+	avail = snd_pcm_avail_update(handle);
+	while (avail >= period_size) {
+		audio_fill(areas, period_size);
+		err = snd_pcm_writei(handle, samples, period_size);
+		if (err < 0) {
+			printf("Write error: %s\n", snd_strerror(err));
+			exit(EXIT_FAILURE);
+		}
+		if (err != period_size) {
+			printf("Write error: written %i expected %li\n", err, period_size);
+			exit(EXIT_FAILURE);
+		}
+		avail = snd_pcm_avail_update(handle);
+	}
+}
+
+
+void async_kickoff(snd_pcm_t *handle,
+		      signed short *samples,
+		      snd_pcm_channel_area_t *areas)
+{
+	int err, count;
+	data.samples = samples;
+	data.areas = areas;
+	err = snd_async_add_pcm_handler(&ahandler, handle, async_callback, &data);
+	if (err < 0) {
+		printf("Unable to register async handler\n");
+		exit(EXIT_FAILURE);
+	}
+	for (count = 0; count < 2; count++) {
+		audio_fill(areas, period_size);
+		err = snd_pcm_writei(handle, samples, period_size);
+		if (err < 0) {
+			printf("Initial write error: %s\n", snd_strerror(err));
+			exit(EXIT_FAILURE);
+		}
+		if (err != period_size) {
+			printf("Initial write error: written %i expected %li\n", err, period_size);
+			exit(EXIT_FAILURE);
+		}
+	}
+	if (snd_pcm_state(handle) == SND_PCM_STATE_PREPARED) {
+		err = snd_pcm_start(handle);
+		if (err < 0) {
+			printf("Start error: %s\n", snd_strerror(err));
+			exit(EXIT_FAILURE);
+		}
+	}
+}
+
+
+
+
+int main()
+{
+	int err;
+	snd_pcm_hw_params_t *hwparams;
+	snd_pcm_sw_params_t *swparams;
+	uint8_t *samples;
+	snd_pcm_channel_area_t *areas;
+	snd_pcm_hw_params_alloca(&hwparams);
+	snd_pcm_sw_params_alloca(&swparams);
+
+	if ((err = snd_pcm_open(&handle, device, SND_PCM_STREAM_PLAYBACK, 0)) < 0) {
+		printf("Playback open error: %s\n", snd_strerror(err));
+		return 0;
+	}
+	if ((err = set_hwparams(handle, hwparams, SND_PCM_ACCESS_RW_INTERLEAVED, &buffer_size, &period_size)) < 0) {
+		printf("Setting of hwparams failed: %s\n", snd_strerror(err));
+		exit(EXIT_FAILURE);
+	}
+	if ((err = set_swparams(handle, swparams,buffer_size,  period_size)) < 0) {
+		printf("Setting of swparams failed: %s\n", snd_strerror(err));
+		exit(EXIT_FAILURE);
+	}
+
+	samples = malloc((period_size * snd_pcm_format_physical_width(format)) / 8);
+	if (samples == NULL) {
+		printf("No enough memory\n");
+		exit(EXIT_FAILURE);
+	}
+
+	areas = calloc(1, sizeof(snd_pcm_channel_area_t));
+	if (areas == NULL) {
+		printf("No enough memory\n");
+		exit(EXIT_FAILURE);
+	}
+
+	areas[0].addr = samples;
+	areas[0].first = 0;
+	areas[0].step = 1;
+
+	async_kickoff(handle, samples, areas);
+
+  init();
+
+  while (1) {
+    read_input();
+    update_screen();
+  }
+
+
+	free(areas);
+	free(samples);
+	snd_pcm_close(handle);
+  // to satisfy compiler
+  return 0;
+}
